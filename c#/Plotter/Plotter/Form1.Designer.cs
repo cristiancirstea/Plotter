@@ -38,8 +38,10 @@
             this.pnl_Draw = new System.Windows.Forms.Panel();
             this.btnClearCanvas = new System.Windows.Forms.Button();
             this.cbPoints = new System.Windows.Forms.ComboBox();
+            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.edBaud)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.edPosition)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.SuspendLayout();
             // 
             // cbPorts
@@ -173,11 +175,36 @@
             this.cbPoints.Size = new System.Drawing.Size(596, 21);
             this.cbPoints.TabIndex = 11;
             // 
+            // numericUpDown1
+            // 
+            this.numericUpDown1.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.numericUpDown1.Increment = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Location = new System.Drawing.Point(150, 41);
+            this.numericUpDown1.Maximum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Minimum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            -2147483648});
+            this.numericUpDown1.Name = "numericUpDown1";
+            this.numericUpDown1.Size = new System.Drawing.Size(120, 38);
+            this.numericUpDown1.TabIndex = 12;
+            this.numericUpDown1.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(596, 460);
+            this.Controls.Add(this.numericUpDown1);
             this.Controls.Add(this.cbPoints);
             this.Controls.Add(this.btnClearCanvas);
             this.Controls.Add(this.pnl_Draw);
@@ -193,6 +220,7 @@
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             ((System.ComponentModel.ISupportInitialize)(this.edBaud)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.edPosition)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -210,6 +238,7 @@
         private System.Windows.Forms.Panel pnl_Draw;
         private System.Windows.Forms.Button btnClearCanvas;
         private System.Windows.Forms.ComboBox cbPoints;
+        private System.Windows.Forms.NumericUpDown numericUpDown1;
     }
 }
 

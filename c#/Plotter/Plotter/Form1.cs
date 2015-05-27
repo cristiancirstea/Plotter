@@ -156,8 +156,8 @@ namespace Plotter
 
         private void edPosition_ValueChanged(object sender, EventArgs e)
         {
-            if(arduinoCommand != null)
-            arduinoCommand.setPosition((int)edPosition.Value);
+            if (arduinoCommand != null)
+                arduinoCommand.setPosition(new Point(((int)edPosition.Value), ((int)numericUpDown1.Value)));
         }
 
         private void pnl_Draw_MouseUp(object sender, MouseEventArgs e)
@@ -184,20 +184,8 @@ namespace Plotter
 
         public void addPoint(Point p)
         {
-            if (arduinoCommand.points.Count == 0)
-            {
-                arduinoCommand.points.Add(p);
+            if (arduinoCommand.addCommandToSend(p, true))
                 cbPoints.Items.Add("" + p.X + " " + p.Y);
-                return;
-            }
-            if (
-                    (p.X != arduinoCommand.points[arduinoCommand.points.Count - 1].X)
-                    || (p.Y != arduinoCommand.points[arduinoCommand.points.Count - 1].Y)
-                )
-            {
-                arduinoCommand.points.Add(p);
-                cbPoints.Items.Add("" + p.X + " " + p.Y);
-            }
         }
 
         private void pnl_Draw_MouseDown(object sender, MouseEventArgs e)
@@ -210,9 +198,15 @@ namespace Plotter
             g.Clear(pnl_Draw.BackColor);
             //Setting the BackColor of pnl_draw and btn_CanvasColor to White on Clicking New under File Menu
             pnl_Draw.BackColor = Color.White;
-            arduinoCommand.points.Clear();
-            arduinoCommand.setPosition(0);
+            arduinoCommand.commands.Clear();
+            arduinoCommand.setPosition(new Point(0,0));
             cbPoints.Items.Clear();
+        }
+
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
+            if (arduinoCommand != null)
+                arduinoCommand.setPosition(new Point(((int)edPosition.Value), ((int)numericUpDown1.Value)));
         }
     }
 }
