@@ -14,22 +14,13 @@ using System.Drawing;
 
 namespace ArduinoCommand
 {
-    
-    // This is the list of recognized commands. These can be commands that can either be sent or received. 
-    // In order to receive, attach a callback function to these events
-    // 
-    // Default commands
-    // Note that commands work both directions:
-    // - All commands can be sent
-    // - Commands that have callbacks attached can be received
-    // 
-    // This means that both sides should have an identical command list:
-    // one side can either send it or receive it (sometimes both)
- 
-    // Commands
     enum CommandType
     {
-        MoveTo, 
+        Acknowledge,            // Command to acknowledge a received command
+        Error,                  // Command to message that an error has occurred
+        MoveToX,                 // Command to move on OX 
+        MoveToY,         // Command to move on OY 
+        SetPen,               // Command to move on move pen
         Status
     };
 
@@ -47,17 +38,16 @@ namespace ArduinoCommand
 
     public class Command
     {
-        public const int SCALE_X = 10;
-        public const int SCALE_Y = 10;
+        public const int SCALE_X = 2;
+        public const int SCALE_Y = 2 ;
+        public const int TRESHOLD_X = 2;
+        public const int TRESHOLD_Y = 2;
 
         public bool RunLoop { get; set; }
         private SerialTransport _serialTransport;
         private CmdMessenger _cmdMessenger;
         private Point _stepperPosition;
         private bool _isPenDown = false;
-
-        //public  List<Point> points = new List<Point>();
-        //public int lastPointSend = 0;
 
         public List<CommandData> commands = new List<CommandData>();
         public  int lastCommandSend = 0;
@@ -68,7 +58,7 @@ namespace ArduinoCommand
         //TODO
         public void setPosition(Point value)
         {
-            this._stepperPosition = value;
+            addCommandToSend(value, false);
         }
 
         // Setup function
@@ -105,28 +95,38 @@ namespace ArduinoCommand
         {
             CommandData commandData = getCommandToSend();
 
+            if (_stepperPosition != scalePoint(commandData.point))
+            {
+                _stepperPosition = scalePoint(commandData.point);
 
-            //TODO send x and y
-            _stepperPosition = scalePoint(commandData.point);
-            _isPenDown = commandData.isPenDown;
+                // Create command
+                var command = new SendCommand(
+                        (int)CommandType.MoveToX
+                    );
+                command.AddArgument(_stepperPosition.X);
+                // Send commands
+                _cmdMessenger.SendCommand(command);
+                Thread.Sleep(100);
 
-            // Create command
-            //var command = new SendCommand(
-            //    (int)CommandType.MoveToX,
-            //    _stepperPosition.X
-            //);
-            
-            // Send commands
-            var command = new SendCommand(
-                    (int)CommandType.MoveTo
-                );
-            command.AddArgument(_stepperPosition.X);
-            //command.AddArgument(_stepperPosition.Y);
+                var commandY = new SendCommand(
+                        (int)CommandType.MoveToY
+                    );
+                commandY.AddArgument(_stepperPosition.Y);
 
-            _cmdMessenger.SendCommand(command);
-            
-            // Wait for 200 milisecond and repeat
-            Thread.Sleep(200);           
+                _cmdMessenger.SendCommand(commandY);
+                Thread.Sleep(100);
+            }
+            if (_isPenDown != commandData.isPenDown)
+            {
+                _isPenDown = commandData.isPenDown;
+                var commandPen = new SendCommand(
+                        (int)CommandType.SetPen
+                    );
+                commandPen.AddArgument(_isPenDown);
+
+                _cmdMessenger.SendCommand(commandPen);
+                Thread.Sleep(200);
+            }
         }
 
         public CommandData getCommandToSend()
@@ -142,14 +142,22 @@ namespace ArduinoCommand
             {
                 this.lastCommandSend++;
             }
-            //else keep last command
+            else
+            {
+                cd.isPenDown = false;
+            }
+            //else keep last command but pen up
 
             return cd;
         }
 
+        public bool isPenDown()
+        {
+            return this._isPenDown;
+        }
+
         public bool addCommandToSend(Point p, bool isPenDown = false)
         {
-            //TODO check last isPenDown
             if (this.commands.Count == 0)
             {
                 lastCommandSend = 0;
@@ -158,8 +166,8 @@ namespace ArduinoCommand
                 return true;
             }
             if (
-                    (p.X != this.commands[this.commands.Count - 1].point.X)
-                    || (p.Y != this.commands[this.commands.Count - 1].point.Y)
+                    (Math.Abs(p.X - this.commands[this.commands.Count - 1].point.X) > TRESHOLD_X)
+                    || (Math.Abs(p.Y - this.commands[this.commands.Count - 1].point.Y) > TRESHOLD_Y)
                 )
             {
                 this.commands.Add(new CommandData(p, isPenDown));
@@ -191,7 +199,7 @@ namespace ArduinoCommand
         // Callback function that prints that the Arduino has acknowledged
         void OnAcknowledge(ReceivedCommand arguments)
         {
-           System.Windows.Forms.MessageBox.Show(" Arduino is ready");
+         //  System.Windows.Forms.MessageBox.Show(" Arduino is ready");
         }
 
         // Callback function that prints that the Arduino has experienced an error
@@ -202,7 +210,7 @@ namespace ArduinoCommand
         /// Executes when an unknown command has been received.
         void OnUnknownCommand(ReceivedCommand arguments)
         {
-            System.Windows.Forms.MessageBox.Show("Command without attached callback received");
+           // System.Windows.Forms.MessageBox.Show("Command without attached callback received");
         }
 
         // Callback function that prints the Arduino status to the console

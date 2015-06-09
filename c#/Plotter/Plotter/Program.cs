@@ -16,6 +16,7 @@ namespace Plotter
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            //Application.Run(new ControllerForm());
             Application.Run(new Form1());
         }
     }

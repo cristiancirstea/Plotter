@@ -12,7 +12,7 @@
 /*-----( Declare objects )-----*/
 // NOTE: The sequence 1-3-2-4 is required for proper sequencing of 28BYJ48
 //AccelStepper stepper(HALFSTEP, motorPin1, motorPin3, motorPin2, motorPin4);
-AccelStepper stepper(1, 5, 4);
+AccelStepper stepper(1, 11, 10);
 
 // Attach a new CmdMessenger object to the default Serial port
 CmdMessenger cmdMessenger = CmdMessenger(Serial);

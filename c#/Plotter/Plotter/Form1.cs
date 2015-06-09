@@ -15,7 +15,6 @@ namespace Plotter
 {
     public partial class Form1 : Form
     {
-        static SerialPort port;
         static ArduinoCommand.Command arduinoCommand;
         Thread loopThread;
         public static bool _RunThread;
@@ -75,7 +74,7 @@ namespace Plotter
                 arduinoCommand = new ArduinoCommand.Command { RunLoop = true, PortName = portName, BaundRate = baud };
                 arduinoCommand.Setup();
 
-                // Create the thread object, passing in the Alpha.Beta method
+                // Create the thread object, 
                 // via a ThreadStart delegate. This does not start the thread.
                 loopThread = new Thread(new ThreadStart(Form1.runLoop));
                 Form1._RunThread = true;
@@ -107,25 +106,6 @@ namespace Plotter
             }
         }
 
-        //delegate void AddTextCallback(string text);
-
-        //private void AddTextRecived(string text)
-        //{
-        //    // InvokeRequired required compares the thread ID of the
-        //    // calling thread to the thread ID of the creating thread.
-        //    // If these threads are different, it returns true.
-        //    if (this.tbRecived.InvokeRequired)
-        //    {
-        //        AddTextCallback d = new AddTextCallback(AddTextRecived);
-        //        this.Invoke(d, new object[] { text });
-        //    }
-        //    else
-        //    {
-        //        this.tbRecived.AppendText(text);
-                
-        //    }
-        //}
-
         private void btnDisconnect_Click(object sender, EventArgs e)
         {
 
@@ -136,14 +116,18 @@ namespace Plotter
 
         public void disconnect()
         {
+            //TODO some bugs on disconnect!!! threads and stuff
             if (arduinoCommand != null)
             {
+                if(arduinoCommand.RunLoop)
+                    arduinoCommand.Exit();
                 arduinoCommand.RunLoop = false;
+                Form1._RunThread = false;
+                
                // arduinoCommand = null;
             }
             //loopThread.Join();
-            Form1._RunThread = false;
-            arduinoCommand.Exit();
+            
             //loopThread.Join();
            // loopThread = null;
         }
@@ -156,8 +140,7 @@ namespace Plotter
 
         private void edPosition_ValueChanged(object sender, EventArgs e)
         {
-            if (arduinoCommand != null)
-                arduinoCommand.setPosition(new Point(((int)edPosition.Value), ((int)numericUpDown1.Value)));
+           
         }
 
         private void pnl_Draw_MouseUp(object sender, MouseEventArgs e)
@@ -165,6 +148,9 @@ namespace Plotter
             startPaint = false;
             initX = null;
             initY = null;
+            if (arduinoCommand == null)
+                return;
+            arduinoCommand.addCommandToSend(e.Location, false); //only move to that
         }
 
         private void pnl_Draw_MouseMove(object sender, MouseEventArgs e)
@@ -184,6 +170,8 @@ namespace Plotter
 
         public void addPoint(Point p)
         {
+            if (arduinoCommand == null)
+                return;
             if (arduinoCommand.addCommandToSend(p, true))
                 cbPoints.Items.Add("" + p.X + " " + p.Y);
         }
@@ -191,22 +179,42 @@ namespace Plotter
         private void pnl_Draw_MouseDown(object sender, MouseEventArgs e)
         {
             startPaint = true;
+            if (arduinoCommand == null)
+                return;
+            if (arduinoCommand.isPenDown())
+                return;
+            arduinoCommand.addCommandToSend(e.Location, false); //only move to that
         }
 
         private void btnClearCanvas_Click(object sender, EventArgs e)
         {
             g.Clear(pnl_Draw.BackColor);
-            //Setting the BackColor of pnl_draw and btn_CanvasColor to White on Clicking New under File Menu
             pnl_Draw.BackColor = Color.White;
+            cbPoints.Items.Clear();
+            if (arduinoCommand == null)
+                return;
             arduinoCommand.commands.Clear();
             arduinoCommand.setPosition(new Point(0,0));
-            cbPoints.Items.Clear();
         }
 
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
-            if (arduinoCommand != null)
-                arduinoCommand.setPosition(new Point(((int)edPosition.Value), ((int)numericUpDown1.Value)));
+           
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            btnDisconnect_Click(sender, e);
+
+            using(ControllerForm cf = new ControllerForm(cbPorts.SelectedItem.ToString(), getBaud()))
+            {
+                cf.ShowDialog();
+            }
+        }
+
+        private void pnl_Draw_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }
